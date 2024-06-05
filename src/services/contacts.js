@@ -1,6 +1,6 @@
-const Contact = require('../db/contact');
+import Contact from '../db/contact.js';
 
-async function getAllContacts() {
+export async function getAllContacts() {
   try {
     return await Contact.find();
   } catch (error) {
@@ -8,15 +8,10 @@ async function getAllContacts() {
   }
 }
 
-async function getContactById(contactId) {
+export async function getContactById(contactId) {
   try {
     return await Contact.findById(contactId);
   } catch (error) {
     throw new Error('Error retrieving contact: ' + error.message);
   }
 }
-
-module.exports = {
-  getAllContacts,
-  getContactById,
-};
