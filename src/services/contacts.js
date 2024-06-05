@@ -1,11 +1,19 @@
 const Contact = require('../db/contact');
 
 async function getAllContacts() {
-  return await Contact.find();
+  try {
+    return await Contact.find();
+  } catch (error) {
+    throw new Error('Error retrieving contacts: ' + error.message);
+  }
 }
 
 async function getContactById(contactId) {
-  return await Contact.findById(contactId);
+  try {
+    return await Contact.findById(contactId);
+  } catch (error) {
+    throw new Error('Error retrieving contact: ' + error.message);
+  }
 }
 
 module.exports = {
