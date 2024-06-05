@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 async function initMongoConnection() {
   const { MONGODB_USER, MONGODB_PASSWORD, MONGODB_URL, MONGODB_DB } = process.env;
@@ -16,4 +16,4 @@ async function initMongoConnection() {
   }
 }
 
-module.exports = initMongoConnection;
+export default initMongoConnection;
