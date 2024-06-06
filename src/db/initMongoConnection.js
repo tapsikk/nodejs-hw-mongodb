@@ -5,10 +5,7 @@ async function initMongoConnection() {
   const connectionString = `mongodb://${MONGODB_USER}:${MONGODB_PASSWORD}@${MONGODB_URL}/${MONGODB_DB}`;
 
   try {
-    await mongoose.connect(connectionString, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    await mongoose.connect(connectionString);
     console.log('Mongo connection successfully established!');
   } catch (error) {
     console.error('Mongo connection error:', error);
