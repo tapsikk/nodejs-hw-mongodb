@@ -3,7 +3,7 @@ import pino from 'pino-http';
 import cors from 'cors';
 
 import { env } from './utils/env.js';
-import { getAllContacts, getContactsById } from './services/contacts.js';
+import { getAllContacts, getContactById } from './services/contacts.js';
 
 const PORT = Number(env('PORT', '3000'));
 
@@ -33,7 +33,7 @@ export const setupServer = () => {
   app.get('/contacts/:contactId', async (req, res) => {
     try {
       const { contactId } = req.params;
-      const contact = await getContactsById(contactId);
+      const contact = await getContactById(contactId);
 
       res.status(200).json({
         message: `Successfully found contact with id ${contactId}!`,
