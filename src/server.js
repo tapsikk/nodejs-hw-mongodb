@@ -3,7 +3,7 @@ import pino from 'pino-http';
 import cors from 'cors';
 
 import { env } from './utils/env.js';
-import { getContacts, getContact } from './contact.js';
+import { getContacts, getContact } from './controllers/contacts.js';
 
 const PORT = Number(env('PORT', '3000'));
 
