@@ -33,7 +33,7 @@ export async function getContact(req, res) {
     });
   } catch (error) {
     res.status(500).json({
-      status: 'error',
+      status: 'error 500',
       message: error.message,
     });
   }
