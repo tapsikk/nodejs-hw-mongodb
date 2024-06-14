@@ -9,8 +9,8 @@ export async function getContacts(req, res) {
       data: contacts,
     });
   } catch (error) {
-    res.status(404).json({
-      status: 404,
+    res.status(500).json({
+      status: 500,
       message: error.message,
     });
   }
@@ -32,8 +32,8 @@ export async function getContact(req, res) {
       data: contact,
     });
   } catch (error) {
-    res.status(500).json({
-      status: 500,
+    res.status(404).json({
+      status: 404,
       message: error.message,
     });
   }
