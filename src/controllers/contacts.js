@@ -23,7 +23,7 @@ export async function getContact(req, res) {
     if (!contact) {
       return res.status(404).json({
         status: 404,
-        error: error.message,
+        error: "error, contact is not defined",
       });
     }
     res.status(200).json({
