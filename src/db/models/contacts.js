@@ -1,4 +1,5 @@
 import { model, Schema } from 'mongoose';
+import mongoosePaginate from 'mongoose-paginate-v2';
 
 const contactsSchema = new Schema(
   {
@@ -30,5 +31,7 @@ const contactsSchema = new Schema(
     versionKey: false,
   }
 );
+
+contactsSchema.plugin(mongoosePaginate);
 
 export const ContactsCollection = model('contacts', contactsSchema);

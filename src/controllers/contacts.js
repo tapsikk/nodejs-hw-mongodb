@@ -1,22 +1,46 @@
-import { getAllContacts, getContactById, createNewContact, updateExistingContact, removeContact } from '../services/contacts.js';
+import {
+  getAllContacts,
+  getContactById,
+  createNewContact,
+  updateExistingContact,
+  removeContact,
+} from '../services/contacts.js';
+import createError from 'http-errors';
 
-export async function getContacts(req, res) {
+export async function getContacts(req, res, next) {
   try {
-    const contacts = await getAllContacts();
+    const { page = 1, perPage = 10, sortBy = 'name', sortOrder = 'asc', type, isFavourite } = req.query;
+
+    const options = {
+      page: parseInt(page, 10),
+      limit: parseInt(perPage, 10),
+      sort: { [sortBy]: sortOrder === 'asc' ? 1 : -1 },
+    };
+
+    const filter = {};
+    if (type) filter.contactType = type;
+    if (isFavourite) filter.isFavourite = isFavourite === 'true';
+
+    const contacts = await getAllContacts(filter, options);
     res.status(200).json({
       status: 200,
       message: 'Successfully found contacts!',
-      data: contacts,
+      data: {
+        data: contacts.docs,
+        page: contacts.page,
+        perPage: contacts.limit,
+        totalItems: contacts.totalDocs,
+        totalPages: contacts.totalPages,
+        hasPreviousPage: contacts.hasPrevPage,
+        hasNextPage: contacts.hasNextPage,
+      },
     });
   } catch (error) {
-    res.status(500).json({
-      status: 500,
-      message: error.message,
-    });
+    next(createError(500, error.message));
   }
 }
 
-export async function getContact(req, res) {
+export async function getContact(req, res, next) {
   try {
     const { contactId } = req.params;
     const contact = await getContactById(contactId);
@@ -33,14 +57,11 @@ export async function getContact(req, res) {
       data: contact,
     });
   } catch (error) {
-    res.status(500).json({
-      status: 500,
-      message: error.message,
-    });
+    next(createError(500, error.message));
   }
 }
 
-export async function createContact(req, res) {
+export async function createContact(req, res, next) {
   try {
     const newContact = await createNewContact(req.body);
     res.status(201).json({
@@ -49,14 +70,11 @@ export async function createContact(req, res) {
       data: newContact,
     });
   } catch (error) {
-    res.status(500).json({
-      status: 500,
-      message: error.message,
-    });
+    next(createError(500, error.message));
   }
 }
 
-export async function updateContact(req, res) {
+export async function updateContact(req, res, next) {
   try {
     const { contactId } = req.params;
     const updatedContact = await updateExistingContact(contactId, req.body);
@@ -73,14 +91,11 @@ export async function updateContact(req, res) {
       data: updatedContact,
     });
   } catch (error) {
-    res.status(500).json({
-      status: 500,
-      message: error.message,
-    });
+    next(createError(500, error.message));
   }
 }
 
-export async function deleteContact(req, res) {
+export async function deleteContact(req, res, next) {
   try {
     const { contactId } = req.params;
     const deletedContact = await removeContact(contactId);
@@ -93,9 +108,6 @@ export async function deleteContact(req, res) {
     }
     res.status(204).send();
   } catch (error) {
-    res.status(500).json({
-      status: 500,
-      message: error.message,
-    });
+    next(createError(500, error.message));
   }
 }
