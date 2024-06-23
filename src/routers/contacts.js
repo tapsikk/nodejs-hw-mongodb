@@ -5,10 +5,10 @@ import { validateBody, contactSchema } from '../middlewares/validateBody.js';
 
 const router = express.Router();
 
-router.get('/contacts', ctrlWrapper(getContacts));
-router.get('/contacts/:contactId', ctrlWrapper(getContact));
-router.post('/contacts', validateBody(contactSchema), ctrlWrapper(createContact));
-router.patch('/contacts/:contactId', validateBody(contactSchema), ctrlWrapper(updateContact));
-router.delete('/contacts/:contactId', ctrlWrapper(deleteContact));
+router.get('/', ctrlWrapper(getContacts));
+router.get('/:contactId', ctrlWrapper(getContact));
+router.post('/', validateBody(contactSchema), ctrlWrapper(createContact));
+router.patch('/:contactId', validateBody(contactSchema), ctrlWrapper(updateContact));
+router.delete('/:contactId', ctrlWrapper(deleteContact));
 
 export default router;
