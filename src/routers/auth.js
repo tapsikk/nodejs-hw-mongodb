@@ -1,12 +1,13 @@
 import express from 'express';
-import { registerUser } from '../controllers/auth.js';
-import { validateBody, userRegisterSchema } from '../middlewares/validateBody.js';
+import { registerUser, loginUser, refreshSession, logoutUser } from '../controllers/auth.js';
+import { validateBody, userRegisterSchema, userLoginSchema } from '../middlewares/validateBody.js';
 import ctrlWrapper from '../middlewares/ctrlWrapper.js';
-import { loginUser } from '../controllers/auth.js';
-import { refreshSession } from '../controllers/auth.js';
 
 const router = express.Router();
 
-router.post('/register', validateBody(userLoginSchema), ctrlWrapper(loginUser));
+router.post('/register', validateBody(userRegisterSchema), ctrlWrapper(registerUser));
+router.post('/login', validateBody(userLoginSchema), ctrlWrapper(loginUser));
 router.post('/refresh', ctrlWrapper(refreshSession));
+router.post('/logout', ctrlWrapper(logoutUser));
+
 export default router;
