@@ -4,6 +4,7 @@ import cors from 'cors';
 
 import { env } from './utils/env.js';
 import contactsRouter from './routers/contacts.js';
+import authRouter from './routers/auth.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import { notFoundHandler } from './middlewares/notFoundHandler.js';
 
@@ -23,14 +24,8 @@ export const setupServer = () => {
     })
   );
 
-
-  app.get('/', (req, res) => {
-    res.json({
-      message: 'Server is running',
-    });
-  });
-
   app.use('/contacts', contactsRouter);
+  app.use('/auth', authRouter);
 
   app.use('*', notFoundHandler);
   app.use(errorHandler);
