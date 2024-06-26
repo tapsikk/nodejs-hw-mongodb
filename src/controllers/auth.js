@@ -1,14 +1,18 @@
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import createHttpError from 'http-errors';
 import User from '../db/models/user.js';
 import Session from '../db/models/session.js';
-import createHttpError from 'http-errors';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 
 export const registerUser = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      throw createHttpError(409, 'Email in use');
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = new User({ name, email, password: hashedPassword });
@@ -16,7 +20,13 @@ export const registerUser = async (req, res, next) => {
 
     res.status(201).json({
       status: 'success',
-      message: 'User registered successfully!',
+      message: 'Successfully registered a user!',
+      data: {
+        name: newUser.name,
+        email: newUser.email,
+        createdAt: newUser.createdAt,
+        updatedAt: newUser.updatedAt,
+      },
     });
   } catch (error) {
     next(createHttpError(500, 'Error registering user'));
@@ -37,20 +47,28 @@ export const loginUser = async (req, res, next) => {
       throw createHttpError(401, 'Invalid credentials');
     }
 
-    const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '1h' });
+    const accessToken = Math.random().toString(36).substring(2);
+    const refreshToken = Math.random().toString(36).substring(2);
+
+    await Session.deleteMany({ userId: user._id });
 
     const newSession = new Session({
       userId: user._id,
-      accessToken: token,
-      refreshToken: '',
-      accessTokenValidUntil: new Date(Date.now() + 60 * 60 * 1000), // 1 hour
-      refreshTokenValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+      accessToken,
+      refreshToken,
+      accessTokenValidUntil: new Date(Date.now() + 15 * 60 * 1000),
+      refreshTokenValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     });
     await newSession.save();
 
+    res.cookie('refreshToken', refreshToken, { httpOnly: true });
+
     res.json({
       status: 'success',
-      data: { token },
+      message: 'Successfully logged in an user!',
+      data: {
+        accessToken,
+      },
     });
   } catch (error) {
     next(createHttpError(500, 'Error logging in'));
@@ -74,7 +92,7 @@ export const logoutUser = async (req, res, next) => {
 
     res.clearCookie('refreshToken');
 
-    res.status(200).json({
+    res.status(204).json({
       status: 'success',
       message: 'Successfully logged out!',
     });
@@ -91,26 +109,24 @@ export const refreshSession = async (req, res, next) => {
       throw createHttpError(401, 'No refresh token provided');
     }
 
-    let payload;
-    try {
-      payload = jwt.verify(refreshToken, JWT_SECRET);
-    } catch (e) {
+    const session = await Session.findOne({ refreshToken });
+    if (!session) {
       throw createHttpError(401, 'Invalid refresh token');
     }
 
-    await Session.deleteMany({ userId: payload.userId });
+    await Session.deleteMany({ userId: session.userId });
 
-    const accessToken = jwt.sign({ userId: payload.userId }, JWT_SECRET, { expiresIn: '15m' });
-    const newRefreshToken = jwt.sign({ userId: payload.userId }, JWT_SECRET, { expiresIn: '30d' });
+    const accessToken = Math.random().toString(36).substring(2);
+    const newRefreshToken = Math.random().toString(36).substring(2);
 
-    const session = new Session({
-      userId: payload.userId,
+    const newSession = new Session({
+      userId: session.userId,
       accessToken,
       refreshToken: newRefreshToken,
       accessTokenValidUntil: new Date(Date.now() + 15 * 60 * 1000),
       refreshTokenValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
     });
-    await session.save();
+    await newSession.save();
 
     res.cookie('refreshToken', newRefreshToken, { httpOnly: true });
 
