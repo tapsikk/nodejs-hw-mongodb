@@ -1,29 +1,24 @@
 import createHttpError from 'http-errors';
-import jwt from 'jsonwebtoken';
-import User from '../db/models/user.js';
 import Session from '../db/models/session.js';
 
 const authenticate = async (req, res, next) => {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return next(createHttpError(401, 'No token provided'));
-  }
-
-  const token = authHeader.split(' ')[1];
-
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const session = await Session.findOne({ accessToken: token, userId: decoded.userId });
-
-    if (!session) {
-      throw new Error();
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      throw createHttpError(401, 'No token provided');
     }
 
-    req.user = await User.findById(decoded.userId).select('-password');
+    const token = authHeader.split(' ')[1];
+    const session = await Session.findOne({ accessToken: token });
+
+    if (!session || session.accessTokenValidUntil < Date.now()) {
+      throw createHttpError(401, 'Access token expired');
+    }
+
+    req.user = { _id: session.userId };
     next();
-  } catch (e) {
-    next(createHttpError(401, 'Access token expired'));
+  } catch (error) {
+    next(createHttpError(401, 'Authentication failed'));
   }
 };
 

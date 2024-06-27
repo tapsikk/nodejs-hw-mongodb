@@ -2,12 +2,12 @@ import bcrypt from 'bcryptjs';
 import createHttpError from 'http-errors';
 import User from '../db/models/user.js';
 import Session from '../db/models/session.js';
+import * as authService from '../services/auth.js';
 
 export const registerUser = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
 
-    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       throw createHttpError(409, 'Email in use');
@@ -19,7 +19,7 @@ export const registerUser = async (req, res, next) => {
     await newUser.save();
 
     res.status(201).json({
-      status: 'success',
+      status: 201,
       message: 'Successfully registered a user!',
       data: {
         name: newUser.name,
@@ -63,8 +63,8 @@ export const loginUser = async (req, res, next) => {
 
     res.cookie('refreshToken', refreshToken, { httpOnly: true });
 
-    res.json({
-      status: 'success',
+    res.status(200).json({
+      status: 200,
       message: 'Successfully logged in an user!',
       data: {
         accessToken,
@@ -92,10 +92,7 @@ export const logoutUser = async (req, res, next) => {
 
     res.clearCookie('refreshToken');
 
-    res.status(204).json({
-      status: 'success',
-      message: 'Successfully logged out!',
-    });
+    res.status(204).send();
   } catch (error) {
     next(createHttpError(500, 'Error logging out'));
   }
@@ -131,7 +128,7 @@ export const refreshSession = async (req, res, next) => {
     res.cookie('refreshToken', newRefreshToken, { httpOnly: true });
 
     res.status(200).json({
-      status: 'success',
+      status: 200,
       message: 'Successfully refreshed a session!',
       data: {
         accessToken,

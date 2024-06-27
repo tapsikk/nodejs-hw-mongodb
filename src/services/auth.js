@@ -1,7 +1,7 @@
-import User from '../models/user.js';
+import User from '../db/models/user.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import Session from '../models/session.js';
+import Session from '../db/models/session.js';
 import createHttpError from 'http-errors';
 
 export const createUser = async (userData) => {
