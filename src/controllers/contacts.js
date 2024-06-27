@@ -1,75 +1,94 @@
-import Contact from '../db/models/contacts.js';
+import * as contactsService from '../services/contacts.js';
 import createHttpError from 'http-errors';
 
-export const getContacts = async (req, res) => {
-  const userId = req.user._id;
-  const contacts = await Contact.find({ userId });
-  res.json({
-    status: 'success',
-    data: contacts,
-  });
-};
-
-export const getContact = async (req, res) => {
-  const { contactId } = req.params;
-  const userId = req.user._id;
-  const contact = await Contact.findOne({ _id: contactId, userId });
-
-  if (!contact) {
-    throw createHttpError(404, 'Contact not found');
+export const getContacts = async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+    const contacts = await contactsService.getContactsByUserId(userId);
+    res.json({
+      status: 200,
+      data: contacts,
+    });
+  } catch (error) {
+    next(error);
   }
-
-  res.json({
-    status: 'success',
-    data: contact,
-  });
 };
 
-export const createContact = async (req, res) => {
-  const { name, email, phone } = req.body;
-  const userId = req.user._id;
+export const getContact = async (req, res, next) => {
+  try {
+    const { contactId } = req.params;
+    const userId = req.user._id;
+    const contact = await contactsService.getContactById(contactId, userId);
 
-  const newContact = new Contact({ name, email, phone, userId });
-  await newContact.save();
+    if (!contact) {
+      throw createHttpError(404, 'Contact not found');
+    }
 
-  res.status(201).json({
-    status: 'success',
-    message: 'Successfully created a contact!',
-    data: newContact,
-  });
-};
-
-export const updateContact = async (req, res) => {
-  const { contactId } = req.params;
-  const userId = req.user._id;
-  const updates = req.body;
-
-  const updatedContact = await Contact.findOneAndUpdate({ _id: contactId, userId }, updates, { new: true });
-
-  if (!updatedContact) {
-    throw createHttpError(404, 'Contact not found');
+    res.json({
+      status: 200,
+      data: contact,
+    });
+  } catch (error) {
+    next(error);
   }
-
-  res.json({
-    status: 'success',
-    message: 'Successfully updated the contact!',
-    data: updatedContact,
-  });
 };
 
-export const deleteContact = async (req, res) => {
-  const { contactId } = req.params;
-  const userId = req.user._id;
+export const createContact = async (req, res, next) => {
+  try {
+    const { name, email, phone } = req.body;
+    const userId = req.user._id;
 
-  const deletedContact = await Contact.findOneAndDelete({ _id: contactId, userId });
+    const newContact = await contactsService.createContact({ name, email, phone, userId });
 
-  if (!deletedContact) {
-    throw createHttpError(404, 'Contact not found');
+    res.status(201).json({
+      status: 201,
+      message: 'Successfully created a contact!',
+      data: newContact,
+    });
+  } catch (error) {
+    next(error);
   }
+};
 
-  res.json({
-    status: 'success',
-    message: 'Successfully deleted the contact!',
-    data: deletedContact,
-  });
+export const updateContact = async (req, res, next) => {
+  try {
+    const { contactId } = req.params;
+    const userId = req.user._id;
+    const updates = req.body;
+
+    const updatedContact = await contactsService.updateContact(contactId, userId, updates);
+
+    if (!updatedContact) {
+      throw createHttpError(404, 'Contact not found');
+    }
+
+    res.json({
+      status: 200,
+      message: 'Successfully updated the contact!',
+      data: updatedContact,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const deleteContact = async (req, res, next) => {
+  try {
+    const { contactId } = req.params;
+    const userId = req.user._id;
+
+    const deletedContact = await contactsService.deleteContact(contactId, userId);
+
+    if (!deletedContact) {
+      throw createHttpError(404, 'Contact not found');
+    }
+
+    res.json({
+      status: 200,
+      message: 'Successfully deleted the contact!',
+      data: deletedContact,
+    });
+  } catch (error) {
+    next(error);
+  }
 };
