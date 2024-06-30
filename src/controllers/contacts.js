@@ -10,7 +10,7 @@ export const getContacts = async (req, res, next) => {
       data: contacts,
     });
   } catch (error) {
-    next(error);
+    next(createHttpError(500, `Error getting contacts: ${error.message}`));
   }
 };
 
@@ -29,7 +29,7 @@ export const getContact = async (req, res, next) => {
       data: contact,
     });
   } catch (error) {
-    next(error);
+    next(createHttpError(500, `Error getting contact: ${error.message}`));
   }
 };
 
@@ -45,7 +45,7 @@ export const createContact = async (req, res, next) => {
       data: newContact,
     });
   } catch (error) {
-    next(error);
+    next(createHttpError(500, `Error creating contact: ${error.message}`));
   }
 };
 
@@ -67,7 +67,7 @@ export const updateContact = async (req, res, next) => {
       data: updatedContact,
     });
   } catch (error) {
-    next(error);
+    next(createHttpError(500, `Error updating contact: ${error.message}`));
   }
 };
 
@@ -88,6 +88,6 @@ export const deleteContact = async (req, res, next) => {
       data: deletedContact,
     });
   } catch (error) {
-    next(error);
+    next(createHttpError(500, `Error deleting contact: ${error.message}`));
   }
 };
