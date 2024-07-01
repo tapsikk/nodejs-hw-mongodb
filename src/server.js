@@ -1,6 +1,7 @@
 import express from 'express';
 import pino from 'pino-http';
 import cors from 'cors';
+import mongoose from 'mongoose';
 
 import { env } from './utils/env.js';
 import contactsRouter from './routers/contacts.js';
@@ -9,6 +10,16 @@ import { errorHandler } from './middlewares/errorHandler.js';
 import { notFoundHandler } from './middlewares/notFoundHandler.js';
 
 const PORT = Number(env('PORT', '3000'));
+
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log('MongoDB connected');
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+    process.exit(1);
+  }
+};
 
 export const setupServer = () => {
   const app = express();
@@ -29,6 +40,8 @@ export const setupServer = () => {
 
   app.use('*', notFoundHandler);
   app.use(errorHandler);
+
+  connectDB();
 
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
