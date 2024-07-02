@@ -1,81 +1,84 @@
-import User from '../db/models/user.js';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import Session from '../db/models/session.js';
+import bcrypt from 'bcrypt';
 import createHttpError from 'http-errors';
+import { randomBytes } from 'crypto';
 
-export const createUser = async (userData) => {
-  const newUser = new User(userData);
-  await newUser.save();
-  return newUser;
+import userSchema from '../db/models/user.js';
+import sessionSchema from '../db/models/session.js';
+
+import { FIFTEEN_MINUTES, THIRTY_DAYS } from '../constants/index.js';
+
+export const registerUser = async (payload) => {
+  const user = await userSchema.findOne({ email: payload.email });
+  if (user) throw createHttpError(409, 'Email in use');
+
+  const encryptedPassword = await bcrypt.hash(payload.password, 10);
+
+  return await userSchema.create({
+    ...payload,
+    password: encryptedPassword,
+  });
 };
 
-export const authenticateUser = async (email, password) => {
-  const user = await User.findOne({ email });
+export const loginUser = async (payload) => {
+  const user = await userSchema.findOne({ email: payload.email });
   if (!user) {
-    throw createHttpError(401, 'Invalid email or password');
+    throw createHttpError(404, 'User not found');
   }
 
-  const isPasswordValid = await bcrypt.compare(password, user.password);
-  if (!isPasswordValid) {
-    throw createHttpError(401, 'Invalid email or password');
+  const isEqual = await bcrypt.compare(payload.password, user.password);
+  if (!isEqual) {
+    throw createHttpError(401, 'Unauthorized');
   }
 
-  await Session.deleteMany({ userId: user._id });
+  await sessionSchema.deleteOne({ userId: user._id });
 
-  const accessToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '15m' });
-  const refreshToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+  const accessToken = randomBytes(30).toString('base64');
+  const refreshToken = randomBytes(30).toString('base64');
 
-  const accessTokenValidUntil = new Date(Date.now() + 15 * 60 * 1000);
-  const refreshTokenValidUntil = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-
-  const session = new Session({
+  return await sessionSchema.create({
     userId: user._id,
     accessToken,
     refreshToken,
-    accessTokenValidUntil,
-    refreshTokenValidUntil,
+    accessTokenValidUntil: new Date(Date.now() + FIFTEEN_MINUTES),
+    refreshTokenValidUntil: new Date(Date.now() + THIRTY_DAYS),
   });
-  await session.save();
-
-  return { accessToken, refreshToken };
 };
 
-export const refreshUserSession = async (refreshToken) => {
-  let payload;
-  try {
-    payload = jwt.verify(refreshToken, process.env.JWT_SECRET);
-  } catch (e) {
-    throw createHttpError(401, 'Invalid refresh token');
-  }
+export const logoutUser = async (sessionId) => {
+  await sessionSchema.deleteOne({ _id: sessionId });
+};
 
-  await Session.deleteMany({ userId: payload.userId });
+const createSession = () => {
+  const accessToken = randomBytes(30).toString('base64');
+  const refreshToken = randomBytes(30).toString('base64');
 
-  const accessToken = jwt.sign({ userId: payload.userId }, process.env.JWT_SECRET, { expiresIn: '15m' });
-  const newRefreshToken = jwt.sign({ userId: payload.userId }, process.env.JWT_SECRET, { expiresIn: '30d' });
-
-  const accessTokenValidUntil = new Date(Date.now() + 15 * 60 * 1000);
-  const refreshTokenValidUntil = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-
-  const session = new Session({
-    userId: payload.userId,
+  return {
     accessToken,
-    refreshToken: newRefreshToken,
-    accessTokenValidUntil,
-    refreshTokenValidUntil,
-  });
-  await session.save();
-
-  return { accessToken, refreshToken: newRefreshToken };
+    refreshToken,
+    accessTokenValidUntil: new Date(Date.now() + FIFTEEN_MINUTES),
+    refreshTokenValidUntil: new Date(Date.now() + THIRTY_DAYS),
+  };
 };
 
-export const logoutUserSession = async (refreshToken) => {
-  let payload;
-  try {
-    payload = jwt.verify(refreshToken, process.env.JWT_SECRET);
-  } catch (e) {
-    throw createHttpError(401, 'Invalid refresh token');
+export const refreshUsersSession = async ({ sessionId, refreshToken }) => {
+  const session = await sessionSchema.findOne({ _id: sessionId, refreshToken });
+
+  if (!session) {
+    throw createHttpError(401, 'Session not found');
   }
 
-  await Session.deleteMany({ userId: payload.userId });
+  const isSessionTokenExpired = new Date() > new Date(session.refreshTokenValidUntil);
+
+  if (isSessionTokenExpired) {
+    throw createHttpError(401, 'Session token expired');
+  }
+
+  const newSession = createSession();
+
+  await sessionSchema.deleteOne({ _id: sessionId, refreshToken });
+
+  return await sessionSchema.create({
+    userId: session.userId,
+    ...newSession,
+  });
 };

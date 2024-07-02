@@ -1,5 +1,5 @@
-import { initMongoConnection } from './db/initMongoConnection.js';
 import { setupServer } from './server.js';
+import { initMongoConnection } from './db/initMongoConnection.js';
 
 const startServer = async () => {
   try {
@@ -7,6 +7,7 @@ const startServer = async () => {
     setupServer();
   } catch (error) {
     console.error('Error starting the server:', error);
+    process.exit(1);
   }
 };
 
