@@ -45,7 +45,15 @@ export const loginUser = async (payload) => {
 };
 
 export const logoutUser = async (sessionId) => {
-  await sessionSchema.deleteOne({ _id: sessionId });
+  try {
+    const session = await sessionSchema.findById(sessionId);
+    if (!session) {
+      throw createHttpError(401, 'Session not found');
+    }
+    await sessionSchema.deleteOne({ _id: sessionId });
+  } catch (error) {
+    throw createHttpError(500, 'Error logging out');
+  }
 };
 
 const createSession = () => {
@@ -61,24 +69,28 @@ const createSession = () => {
 };
 
 export const refreshUsersSession = async ({ sessionId, refreshToken }) => {
-  const session = await sessionSchema.findOne({ _id: sessionId, refreshToken });
+  try {
+    const session = await sessionSchema.findOne({ _id: sessionId, refreshToken });
 
-  if (!session) {
-    throw createHttpError(401, 'Session not found');
+    if (!session) {
+      throw createHttpError(401, 'Session not found');
+    }
+
+    const isSessionTokenExpired = new Date() > new Date(session.refreshTokenValidUntil);
+
+    if (isSessionTokenExpired) {
+      throw createHttpError(401, 'Session token expired');
+    }
+
+    const newSession = createSession();
+
+    await sessionSchema.deleteOne({ _id: sessionId, refreshToken });
+
+    return await sessionSchema.create({
+      userId: session.userId,
+      ...newSession,
+    });
+  } catch (error) {
+    throw createHttpError(500, 'Error refreshing session');
   }
-
-  const isSessionTokenExpired = new Date() > new Date(session.refreshTokenValidUntil);
-
-  if (isSessionTokenExpired) {
-    throw createHttpError(401, 'Session token expired');
-  }
-
-  const newSession = createSession();
-
-  await sessionSchema.deleteOne({ _id: sessionId, refreshToken });
-
-  return await sessionSchema.create({
-    userId: session.userId,
-    ...newSession,
-  });
 };
