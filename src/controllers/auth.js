@@ -1,8 +1,8 @@
 import bcrypt from 'bcryptjs';
 import createHttpError from 'http-errors';
+import { v4 as uuidv4 } from 'uuid';
 import User from '../db/models/user.js';
 import Session from '../db/models/session.js';
-import * as authService from '../services/auth.js';
 
 export const registerUser = async (req, res, next) => {
   try {
@@ -29,7 +29,7 @@ export const registerUser = async (req, res, next) => {
       },
     });
   } catch (error) {
-    next(createHttpError(500, 'Error registering user'));
+    next(error);
   }
 };
 
@@ -47,8 +47,8 @@ export const loginUser = async (req, res, next) => {
       throw createHttpError(401, 'Invalid credentials');
     }
 
-    const accessToken = Math.random().toString(36).substring(2);
-    const refreshToken = Math.random().toString(36).substring(2);
+    const accessToken = uuidv4();
+    const refreshToken = uuidv4();
 
     await Session.deleteMany({ userId: user._id });
 
@@ -65,13 +65,13 @@ export const loginUser = async (req, res, next) => {
 
     res.status(200).json({
       status: 200,
-      message: 'Successfully logged in an user!',
+      message: 'Successfully logged in a user!',
       data: {
         accessToken,
       },
     });
   } catch (error) {
-    next(createHttpError(500, 'Error logging in'));
+    next(error); 
   }
 };
 
@@ -94,13 +94,13 @@ export const logoutUser = async (req, res, next) => {
 
     res.status(204).send();
   } catch (error) {
-    next(createHttpError(500, 'Error logging out'));
+    next(error);
   }
 };
 
 export const refreshSession = async (req, res, next) => {
   try {
-    const { refreshToken } = req.cookies;
+    const { refreshToken } = req.cookies || {};
 
     if (!refreshToken) {
       throw createHttpError(401, 'No refresh token provided');
@@ -111,10 +111,15 @@ export const refreshSession = async (req, res, next) => {
       throw createHttpError(401, 'Invalid refresh token');
     }
 
+    const isSessionTokenExpired = new Date() > new Date(session.refreshTokenValidUntil);
+    if (isSessionTokenExpired) {
+      throw createHttpError(401, 'Session token expired');
+    }
+
     await Session.deleteMany({ userId: session.userId });
 
-    const accessToken = Math.random().toString(36).substring(2);
-    const newRefreshToken = Math.random().toString(36).substring(2);
+    const accessToken = uuidv4(); 
+    const newRefreshToken = uuidv4(); 
 
     const newSession = new Session({
       userId: session.userId,
@@ -135,6 +140,6 @@ export const refreshSession = async (req, res, next) => {
       },
     });
   } catch (error) {
-    next(createHttpError(500, 'Error refreshing session'));
+    next(error); 
   }
 };
