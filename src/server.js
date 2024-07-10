@@ -12,33 +12,35 @@ dotenv.config();
 
 const PORT = Number(process.env.PORT) || 3000;
 
-const app = express();
+export const setupServer = () => {
+  const app = express();
 
-app.use(express.json());
-app.use(cors());
-app.use(cookieParser());
+  app.use(express.json());
+  app.use(cors());
+  app.use(cookieParser());
 
-app.use(
-  pino({
-    transport: {
-      target: 'pino-pretty',
-    },
-  })
-);
+  app.use(
+    pino({
+      transport: {
+        target: 'pino-pretty',
+      },
+    })
+  );
 
-app.use('/contacts', contactsRouter);
-app.use('/auth', authRouter);
+  app.use('/contacts', contactsRouter);
+  app.use('/auth', authRouter);
 
-app.use((err, req, res, next) => {
-  res.status(err.status || 500).json({
-    status: err.status || 500,
-    message: err.message,
+  app.use((err, req, res, next) => {
+    res.status(err.status || 500).json({
+      status: err.status || 500,
+      message: err.message,
+    });
   });
-});
 
-app.use('*', notFoundHandler);
-app.use(errorHandler);
+  app.use('*', notFoundHandler);
+  app.use(errorHandler);
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+};
