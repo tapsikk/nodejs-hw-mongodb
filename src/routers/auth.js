@@ -6,7 +6,7 @@ import jwt from 'jsonwebtoken';
 import createHttpError from 'http-errors';
 import User from '../db/models/user.js';
 import { sendResetEmail } from '../services/email.js';
-import bcrypt from 'bcryptjs';
+
 
 const router = express.Router();
 
@@ -34,28 +34,22 @@ router.post('/send-reset-email', async (req, res, next) => {
       data: {},
     });
   } catch (error) {
-    next(createHttpError(500, 'Failed to send the email, please try again later.'));
+    console.error(error); 
+    next(error);
   }
 });
 
 router.post('/reset-pwd', async (req, res, next) => {
   try {
     const { token, password } = req.body;
+    const { email } = jwt.verify(token, process.env.JWT_SECRET);
 
-    let payload;
-    try {
-      payload = jwt.verify(token, process.env.JWT_SECRET);
-    } catch (error) {
-      throw createHttpError(401, 'Token is expired or invalid.');
-    }
-
-    const user = await User.findOne({ email: payload.email });
+    const user = await User.findOne({ email });
     if (!user) {
       throw createHttpError(404, 'User not found!');
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    user.password = hashedPassword;
+    user.password = password;
     await user.save();
 
     await Session.deleteMany({ userId: user._id });
@@ -66,7 +60,12 @@ router.post('/reset-pwd', async (req, res, next) => {
       data: {},
     });
   } catch (error) {
-    next(createHttpError(500, 'Failed to reset password, please try again later.'));
+    console.error(error);
+    if (error.name === 'TokenExpiredError' || error.name === 'JsonWebTokenError') {
+      next(createHttpError(401, 'Token is expired or invalid.'));
+    } else {
+      next(error);
+    }
   }
 });
 
