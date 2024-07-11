@@ -38,7 +38,7 @@ router.post('/send-reset-email', async (req, res, next) => {
   }
 });
 
-router.post('/reset-password', async (req, res, next) => {
+router.post('/reset-pwd', async (req, res, next) => {
   try {
     const { token, password } = req.body;
 
