@@ -5,8 +5,8 @@ import ctrlWrapper from '../middlewares/ctrlWrapper.js';
 import jwt from 'jsonwebtoken';
 import createHttpError from 'http-errors';
 import User from '../db/models/user.js';
+import Session from '../db/models/session.js';
 import { sendResetEmail } from '../services/email.js';
-
 
 const router = express.Router();
 
