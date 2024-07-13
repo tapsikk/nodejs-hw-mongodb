@@ -52,6 +52,7 @@ router.post('/reset-pwd', async (req, res, next) => {
     user.password = password;
     await user.save();
 
+    
     await Session.deleteMany({ userId: user._id });
 
     res.status(200).json({
@@ -60,11 +61,11 @@ router.post('/reset-pwd', async (req, res, next) => {
       data: {},
     });
   } catch (error) {
-    console.error(error);
+    console.error('Error in reset-pwd:', error);
     if (error.name === 'TokenExpiredError' || error.name === 'JsonWebTokenError') {
       next(createHttpError(401, 'Token is expired or invalid.'));
     } else {
-      next(error);
+      next(createHttpError(500, `Error resetting password: ${error.message}`));
     }
   }
 });

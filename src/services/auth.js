@@ -19,30 +19,68 @@ export const registerUser = async (payload) => {
   });
 };
 
+// export const loginUser = async (payload) => {
+//   const user = await userSchema.findOne({ email: payload.email });
+//   if (!user) {
+//     throw createHttpError(401, 'Invalid credentials');
+//   }
+
+//   const isEqual = await bcrypt.compare(payload.password, user.password);
+//   if (!isEqual) {
+//     throw createHttpError(401, 'Invalid credentials');
+//   }
+
+//   await sessionSchema.deleteMany({ userId: user._id });
+
+//   const accessToken = randomBytes(30).toString('base64');
+//   const refreshToken = randomBytes(30).toString('base64');
+
+//   const session = await sessionSchema.create({
+//     userId: user._id,
+//     accessToken,
+//     refreshToken,
+//     accessTokenValidUntil: new Date(Date.now() + FIFTEEN_MINUTES),
+//     refreshTokenValidUntil: new Date(Date.now() + THIRTY_DAYS),
+//   });
+
+//   return {
+//     user: {
+//       _id: user._id,
+//       name: user.name,
+//       email: user.email,
+//     },
+//     session: {
+//       accessToken: session.accessToken,
+//       refreshToken: session.refreshToken,
+//     }
+//   };
+// };
+
 export const loginUser = async (payload) => {
-  const user = await userSchema.findOne({ email: payload.email });
+  const user = await UsersCollection.findOne({ email: payload.email });
   if (!user) {
     throw createHttpError(404, 'User not found');
   }
-
   const isEqual = await bcrypt.compare(payload.password, user.password);
+
   if (!isEqual) {
     throw createHttpError(401, 'Unauthorized');
   }
 
-  await sessionSchema.deleteOne({ userId: user._id });
+  await SessionsCollection.deleteOne({ userId: user._id });
 
   const accessToken = randomBytes(30).toString('base64');
   const refreshToken = randomBytes(30).toString('base64');
 
-  return await sessionSchema.create({
+  return await SessionsCollection.create({
     userId: user._id,
     accessToken,
     refreshToken,
     accessTokenValidUntil: new Date(Date.now() + FIFTEEN_MINUTES),
-    refreshTokenValidUntil: new Date(Date.now() + THIRTY_DAYS),
+    refreshTokenValidUntil: new Date(Date.now() + ONE_DAY),
   });
 };
+
 
 export const logoutUser = async (sessionId) => {
   try {

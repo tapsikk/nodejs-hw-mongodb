@@ -15,8 +15,9 @@ export const registerUser = async (req, res, next) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = new User({ name, email, password: hashedPassword });
-    await newUser.save();
+    const newUser = { name, email, password: hashedPassword };
+    await User.create(newUser);
+
 
     res.status(201).json({
       status: 201,
@@ -33,46 +34,26 @@ export const registerUser = async (req, res, next) => {
   }
 };
 
-export const loginUser = async (req, res, next) => {
-  try {
-    const { email, password } = req.body;
+export const loginUser = async (req, res) => {
+  console.log("reqReqReq: ", req)
+  const session = await loginUser(req.body);
 
-    const user = await User.findOne({ email });
-    if (!user) {
-      throw createHttpError(401, 'Invalid credentials');
-    }
+  res.cookie('refreshToken', session.refreshToken, {
+    httpOnly: true,
+    expires: new Date(Date.now() + ONE_DAY),
+  });
+  res.cookie('sessionId', session._id, {
+    httpOnly: true,
+    expires: new Date(Date.now() + ONE_DAY),
+  });
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      throw createHttpError(401, 'Invalid credentials');
-    }
-
-    const accessToken = uuidv4();
-    const refreshToken = uuidv4();
-
-    await Session.deleteMany({ userId: user._id });
-
-    const newSession = new Session({
-      userId: user._id,
-      accessToken,
-      refreshToken,
-      accessTokenValidUntil: new Date(Date.now() + 15 * 60 * 1000),
-      refreshTokenValidUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-    });
-    await newSession.save();
-
-    res.cookie('refreshToken', refreshToken, { httpOnly: true });
-
-    res.status(200).json({
-      status: 200,
-      message: 'Successfully logged in a user!',
-      data: {
-        accessToken,
-      },
-    });
-  } catch (error) {
-    next(error); 
-  }
+  res.status(299).json({
+    status: 200,
+    message: 'Successfully logged in an user!',
+    data: {
+      accessToken: session.accessToken,
+    },
+  });
 };
 
 export const logoutUser = async (req, res, next) => {
@@ -140,6 +121,7 @@ export const refreshSession = async (req, res, next) => {
       },
     });
   } catch (error) {
-    next(error); 
+    console.error('Error in refreshSession:', error);
+    next(error);
   }
 };

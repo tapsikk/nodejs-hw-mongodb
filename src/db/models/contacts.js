@@ -1,8 +1,8 @@
-import { model, Schema } from 'mongoose';
-import mongoosePaginate from 'mongoose-paginate-v2';
+import { Schema, model } from 'mongoose';
 
 const contactsSchema = new Schema(
   {
+    userId: { type: Schema.Types.ObjectId, ref: 'contacts' },
     name: {
       type: String,
       required: true,
@@ -17,31 +17,21 @@ const contactsSchema = new Schema(
     },
     isFavourite: {
       type: Boolean,
+      required: true,
       default: false,
     },
     contactType: {
       type: String,
+      required: true,
       enum: ['work', 'home', 'personal'],
-      required: false,
       default: 'personal',
     },
-    userId: {
-      type: Schema.Types.ObjectId,
-      ref: 'users',
-      required: true,
-    },
-    photo: { 
-      type: String,
-    },
+    photo: { type: String },
   },
   {
     timestamps: true,
     versionKey: false,
-  }
+  },
 );
 
-contactsSchema.plugin(mongoosePaginate);
-
-const ContactsCollection = model('contacts', contactsSchema);
-
-export default ContactsCollection;
+export const ContactsCollection = model('contacts', contactsSchema);
