@@ -1,6 +1,5 @@
 import createHttpError from 'http-errors';
 import * as contactsService from '../services/contacts.js';
-import { uploadImage } from '../services/cloudinary.js';
 
 export const getContacts = async (req, res, next) => {
   try {
@@ -11,6 +10,7 @@ export const getContacts = async (req, res, next) => {
       data: contacts,
     });
   } catch (error) {
+    console.error(error);
     next(createHttpError(500, `Error getting contacts: ${error.message}`));
   }
 };
@@ -30,6 +30,7 @@ export const getContact = async (req, res, next) => {
       data: contact,
     });
   } catch (error) {
+    console.error(error);
     next(createHttpError(500, `Error getting contact: ${error.message}`));
   }
 };
@@ -38,13 +39,8 @@ export const createContact = async (req, res, next) => {
   try {
     const contactData = req.body;
     const userId = req.user._id;
-    let photoUrl;
-
-    if (req.file) {
-      photoUrl = await uploadImage(req.file.path);
-    }
-
-    const newContact = await contactsService.createContact({ ...contactData, userId, photo: photoUrl });
+    console.log('Creating contact with data:', { ...contactData, userId });
+    const newContact = await contactsService.createContact({ ...contactData, userId });
 
     res.status(201).json({
       status: 201,
@@ -52,6 +48,7 @@ export const createContact = async (req, res, next) => {
       data: newContact,
     });
   } catch (error) {
+    console.error('Error in createContact:', error);
     next(createHttpError(500, `Error creating contact: ${error.message}`));
   }
 };
@@ -61,13 +58,8 @@ export const updateContact = async (req, res, next) => {
     const { contactId } = req.params;
     const userId = req.user._id;
     const updates = req.body;
-    let photoUrl;
 
-    if (req.file) {
-      photoUrl = await uploadImage(req.file.path);
-    }
-
-    const updatedContact = await contactsService.updateContact(contactId, userId, { ...updates, photo: photoUrl });
+    const updatedContact = await contactsService.updateContact(contactId, userId, updates);
 
     if (!updatedContact) {
       throw createHttpError(404, 'Contact not found');
@@ -79,6 +71,7 @@ export const updateContact = async (req, res, next) => {
       data: updatedContact,
     });
   } catch (error) {
+    console.error(error);
     next(createHttpError(500, `Error updating contact: ${error.message}`));
   }
 };
@@ -100,6 +93,7 @@ export const deleteContact = async (req, res, next) => {
       data: deletedContact,
     });
   } catch (error) {
+    console.error(error);
     next(createHttpError(500, `Error deleting contact: ${error.message}`));
   }
 };
