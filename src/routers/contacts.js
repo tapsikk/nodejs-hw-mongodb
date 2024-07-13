@@ -10,7 +10,6 @@ import {
 import { validateBody } from '../middlewares/validateBody.js';
 import {
   createContactSchema,
-  isValidId,
   updateContactSchema,
 } from '../validation/contacts.js';
 import { authenticate } from '../middlewares/authenticate.js';
