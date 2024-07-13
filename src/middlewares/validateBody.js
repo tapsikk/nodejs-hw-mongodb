@@ -1,31 +1,17 @@
-import Joi from 'joi';
+import createHttpError from 'http-errors';
 
-export const contactSchema = Joi.object({
-  name: Joi.string().required(),
-  email: Joi.string().email().required(),
-  phone: Joi.string().optional(),
-});
-
-export const userRegisterSchema = Joi.object({
-  name: Joi.string().required(),
-  email: Joi.string().email().required(),
-  password: Joi.string().required(),
-});
-
-export const validateBody = (schema) => {
-  return (req, res, next) => {
-    const { error } = schema.validate(req.body);
-    if (error) {
-      return res.status(400).json({
-        status: 'error',
-        message: error.details[0].message,
-      });
-    }
+export const validateBody = (schema) => async (req, res, next) => {
+  try {
+    console.log('Request Body Before Validation:', req.body);
+    await schema.validateAsync(req.body, {
+      abortEarly: false,
+    });
+    console.log('Validation passed');
     next();
-  };
+  } catch (err) {
+    const error = createHttpError(400, 'Bad Request', {
+      errors: err.details,
+    });
+    next(error);
+  }
 };
-
-export const userLoginSchema = Joi.object({
-  email: Joi.string().email().required(),
-  password: Joi.string().required(),
-});
