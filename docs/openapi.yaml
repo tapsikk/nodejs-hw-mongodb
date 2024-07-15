@@ -4,15 +4,15 @@ info:
   title: Contacts app
   license:
     name: Apache 2.0
-    url: <http://www.apache.org/licenses/LICENSE-2.0.html>
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
   description: >
     This is a documentation of contacts app
 tags:
   - name: Contacts
     description: Operation about contacts.
 servers:
-  - url: <http://localhost:3000>
-  - url: <https://contaccts-app.onrender.com>
+  - url: http://localhost:3000
+  - url: https://contaccts-app.onrender.com
 paths:
   /contacts/{id}:
     get:

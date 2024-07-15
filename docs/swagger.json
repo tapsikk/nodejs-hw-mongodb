@@ -11,10 +11,10 @@
   },
   "servers": [
     {
-      "url": "<http://localhost:3000>"
+      "url": "http://localhost:3000"
     },
     {
-      "url": "<https://contaccts-app.onrender.com>"
+      "url": "https://contaccts-app.onrender.com"
     }
   ],
   "tags": [
