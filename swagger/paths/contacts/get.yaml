@@ -30,7 +30,7 @@ parameters:
       example: 'asc'
 responses:
   '200':
-    description: Successfully found students!
+    description: Successfully found contacts!
     content:
       application/json:
         schema:
@@ -45,7 +45,7 @@ responses:
               example: 200
             message:
               type: string
-              example: Successfully found students!
+              example: Successfully found contacts!
             data:
               type: object
               required:
