@@ -13,6 +13,32 @@ parameters:
       type: string
       example: 65ca67e7ae7f10c88b598384
     description: ID of the contact
+requestBody:
+  description: Data to patch the contact
+  required: true
+  content:
+    application/json:
+      schema:
+        type: object
+        properties:
+          name:
+            type: string
+            example: Andry Smeeth
+          phoneNumber:
+            type: string
+            example: +1231231324
+          email:
+            type: string
+            example: email@gmail.com
+          isFavourite:
+            type: boolean
+            example: true
+          contactType:
+            type: string
+            enum: ['work', 'home', 'personal']
+          photo:
+            type: string
+            example: <https://res.cloudinary.com/qwe1231ofkaopsdw/image/upload/image.png>
 responses:
   '200':
     description: 'Patch contact by id'
@@ -30,7 +56,8 @@ responses:
               example: 200
             message:
               type: string
-              example: Succesfully found contact with id 65ca67e7ae7f10c88b598384
+              example:
+                Successfully patched contact with id 65ca67e7ae7f10c88b598384
             data:
               type: object
               $ref: ../../../components/schemes/contact.yaml
