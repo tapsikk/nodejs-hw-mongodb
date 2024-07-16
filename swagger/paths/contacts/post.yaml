@@ -23,7 +23,7 @@ requestBody:
             type: string
             example: +380 51 563 5634
           contactType:
-            description: "Contact's age"
+            description: "Contact's type"
             type: string
             enum: ['work', 'home', 'personal']
           email:

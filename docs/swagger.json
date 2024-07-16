@@ -236,7 +236,7 @@
                     "example": "+380 51 563 5634"
                   },
                   "contactType": {
-                    "description": "Contact's age",
+                    "description": "Contact's type",
                     "type": "string",
                     "enum": ["work", "home", "personal"]
                   },
@@ -323,7 +323,7 @@
             "in": "query",
             "schema": {
               "type": "string",
-              "example": "age"
+              "example": "name"
             },
             "description": "All contact's fields can be mentioned. Default value - _id"
           },
