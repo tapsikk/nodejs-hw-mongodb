@@ -2,10 +2,7 @@ type: object
 required:
   - _id
   - name
-  - contactType
-  - gender
-  - avgMark
-  - isFavourite
+  - phoneNumber
 properties:
   _id:
     description: "Contacts's id"
