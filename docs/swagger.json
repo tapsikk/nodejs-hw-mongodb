@@ -2,10 +2,10 @@
   "openapi": "3.1.0",
   "info": {
     "version": "1.0.0",
-    "title": "Students app",
+    "title": "Contacts app",
     "license": {
       "name": "Apache 2.0",
-      "url": "<http://www.apache.org/licenses/LICENSE-2.0.html>"
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
     },
     "description": "This is a documentation of contacts app\n"
   },
@@ -108,6 +108,47 @@
             "description": "ID of the contact"
           }
         ],
+        "requestBody": {
+          "description": "Data to patch the contact",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "example": "Andry Smeeth"
+                  },
+                  "phoneNumber": {
+                    "type": "string",
+                    "example": 1231231324
+                  },
+                  "email": {
+                    "type": "string",
+                    "example": "email@gmail.com"
+                  },
+                  "isFavourite": {
+                    "type": "boolean",
+                    "example": true
+                  },
+                  "contactType": {
+                    "type": "string",
+                    "enum": [
+                      "work",
+                      "home",
+                      "personal"
+                    ]
+                  },
+                  "photo": {
+                    "type": "string",
+                    "example": "<https://res.cloudinary.com/qwe1231ofkaopsdw/image/upload/image.png>"
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Patch contact by id",
@@ -127,13 +168,53 @@
                     },
                     "message": {
                       "type": "string",
-                      "example": "Succesfully found contact with id 65ca67e7ae7f10c88b598384"
+                      "example": "Successfully patched contact with id 65ca67e7ae7f10c88b598384"
                     },
                     "data": {
                       "type": "object",
                       "$ref": "#/components/schemas/contact"
                     }
                   }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/401"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Contacts"
+        ],
+        "summary": "Patch contact by id",
+        "operationId": "deleteContact",
+        "description": "Delete contact by id",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "65ca67e7ae7f10c88b598384"
+            },
+            "description": "ID of the contact"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Delete contact by id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
                 }
               }
             }
@@ -420,7 +501,7 @@
           "photo": {
             "description": "Link to student's photo",
             "type": "string",
-            "example": "<https://res.cloudinary.com/uqwgdu/image/upload/image.png>"
+            "example": "<https://res.cloudinary.com/qwe1231ofkaopsdw/image/upload/image.png>"
           }
         }
       }
