@@ -17,7 +17,7 @@ requestBody:
   description: Data to patch the contact
   required: true
   content:
-    application/json:
+    multipart/form-data:
       schema:
         type: object
         properties:
@@ -39,6 +39,7 @@ requestBody:
           photo:
             type: string
             example: <https://res.cloudinary.com/qwe1231ofkaopsdw/image/upload/image.png>
+            format: binary
 responses:
   '200':
     description: 'Patch contact by id'
